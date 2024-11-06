@@ -31,6 +31,31 @@ eqtlgen_vars <- read.csv("eqtl_vars.csv",
 
 
 # -----------------------------------------------------#
+### IEU GWAS database ###
+# -----------------------------------------------------#
+
+ao <- available_outcomes()
+ao %>% colnames(0)
+ao %>% head()
+
+ao %>% select(trait) %>% unique() %>% nrow()
+ao %>% select(trait) %>% unique() %>% as.data.frame() %>% head(50)
+
+# Patterns to filter
+patterns <- c("IL6", "il6", "il-6", "IL-6", 
+              "Interleukin-6", "gp130", "ADAM17", 
+              "ENSG00000136244", #IL6
+              "ENSG00000160712", #IL6R
+              "ENSG00000134352", #IL6ST
+              "ENSG00000151694" #ADM17
+              )
+
+ao %>% select(trait) %>% unique() %>% as.data.frame() %>% 
+  filter(grepl("IL6", trait)) %>% nrow()
+
+filtered_ao <- ao %>% filter(grepl(paste(patterns, collapse='|'), trait))
+
+# -----------------------------------------------------#
 ### CRP ###
 # -----------------------------------------------------#
 
