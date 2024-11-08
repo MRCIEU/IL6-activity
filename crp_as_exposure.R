@@ -4,6 +4,7 @@ library(TwoSampleMR)
 library(ieugwasr)
 library(ggforestplot)
 library(janitor)
+library(MRInstruments)
 
 setwd("C:/Users/ss23664/OneDrive - University of Bristol/Thesis/IL6_bioavailability/Modelling_snps")
 
@@ -73,14 +74,56 @@ crp_snps <- clump_data(crp_snps)
 ### IL6 ###
 # -----------------------------------------------------#
 
-outcome_il6_eqtlgen <- extract_outcome_data(crp_snps$SNP, "eqtl-a-ENSG00000136244")
+outcome_il6_eqtlgen <- extract_outcome_data(crp_snps$SNP, 
+                                            "eqtl-a-ENSG00000136244") %>%
+  mutate(outcome = "IL6 eqtlgen")
+
+
+# -----------------------------------------------------#
+### IL6R ###
+# -----------------------------------------------------#
+
+outcome_il6r_eqtlgen <- extract_outcome_data(crp_snps$SNP, 
+                                             "eqtl-a-ENSG00000160712") %>%
+  mutate(outcome = "IL6R eqtlgen")
+
+
+# -----------------------------------------------------#
+### IL6ST ###
+# -----------------------------------------------------#
+
+outcome_il6st_eqtlgen <- extract_outcome_data(crp_snps$SNP, 
+                                              "eqtl-a-ENSG00000134352") %>%
+  mutate(outcome = "IL6ST eqtlgen")
+
+
+# -----------------------------------------------------#
+### ADAM17 ###
+# -----------------------------------------------------#
+
+outcome_adam17_eqtlgen <- extract_outcome_data(crp_snps$SNP, 
+                                               "eqtl-a-ENSG00000151694") %>%
+  mutate(outcome = "ADAM17 eqtlgen")
+
+
+# -----------------------------------------------------#
+### All outcomes ###
+# -----------------------------------------------------#
+
+all_outcome_data <- rbind(outcome_il6_eqtlgen,
+                          outcome_il6r_eqtlgen,
+                          outcome_il6st_eqtlgen,
+                          outcome_adam17_eqtlgen)
+
 
 #Harmonise
-crp_dat <- harmonise_data(crp_snps, outcome_il6_eqtlgen)
+crp_dat <- harmonise_data(crp_snps, all_outcome_data)
+crp_dat <- crp_dat %>% mutate(exposure = "C-reactive protein levels")
 
+# 
 #Results
 crp_res <- mr(crp_dat)
-crp_res <- crp_res %>% mutate(exposure = "C-reactive protein levels")
+
 
 # -----------------------------------------------------#
 ### Plots ###
@@ -113,14 +156,14 @@ p1[[1]]
 crp_forest_plot <- forestplot(crp_res %>%
                                  #filter(method == "Inverse variance weighted") %>% 
                                  arrange(exposure),
-                               name = exposure,
+                               name = outcome,
                                estimate = b,
                                se = se,
                                pvalue = pval,
                                colour = method,
                                xlab = "",
                                #ylab = "Outcome",
-                               title = "CRP levels on IL6",
+                               title = "MR of CRP levels on proteins involved \n in IL6 signalling",
                                logodds = FALSE
 ) + theme(axis.text = element_text(size = 10),
           axis.title.x = element_text(size = 10))
