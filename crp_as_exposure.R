@@ -35,6 +35,8 @@ eqtlgen_vars <- read.csv("eqtl_vars.csv",
 ### IEU GWAS database ###
 # -----------------------------------------------------#
 
+options(ieugwasr_api = 'gwas-api.mrcieu.ac.uk/')
+
 ao <- available_outcomes()
 ao %>% colnames(0)
 ao %>% head()
@@ -122,7 +124,8 @@ crp_dat <- crp_dat %>% mutate(exposure = "C-reactive protein levels")
 
 # 
 #Results
-crp_res <- mr(crp_dat)
+crp_res <- mr(crp_dat, method_list = c("mr_wald_ratio", "mr_egger_regression", 
+                                       "mr_weighted_median", "mr_ivw"))
 
 
 # -----------------------------------------------------#
@@ -161,6 +164,7 @@ crp_forest_plot <- forestplot(crp_res %>%
                                se = se,
                                pvalue = pval,
                                colour = method,
+                              shape = method,
                                xlab = "",
                                #ylab = "Outcome",
                                title = "MR of CRP levels on proteins involved \n in IL6 signalling",
