@@ -128,6 +128,26 @@ crp_res <- mr(crp_dat, method_list = c("mr_wald_ratio", "mr_egger_regression",
                                        "mr_weighted_median", "mr_ivw"))
 
 
+# Heterogeneity test
+mr_heterogeneity(dat, method_list = c("mr_ivw")) %>% 
+  select(outcome, Q, Q_df, Q_pval)
+
+# Egger intercept term
+mr_pleiotropy_test(dat) %>% collect() %>% print()
+
+
+# -----------------------------------------------------#
+### Table of results ###
+# -----------------------------------------------------#
+
+outcome_table_crp <- crp_res %>% 
+  #filter(method == "Inverse variance weighted") %>% 
+  select(exposure, outcome, method, nsnp, b, se, pval) %>% 
+  arrange(exposure, outcome, method)
+
+
+write.csv(outcome_table_crp, paste0(output_folder,"/MR_CRP/CRP_exposure_results.csv"))
+
 # -----------------------------------------------------#
 ### Plots ###
 # -----------------------------------------------------#

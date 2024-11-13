@@ -723,7 +723,7 @@ mr_pleiotropy_test(dat) %>% collect() %>% print()
 
 
 # -----------------------------------------------------#
-### Table of results - IVW for all outcomes ###
+### Table of results ###
 # -----------------------------------------------------#
 
 outcome_table_all_methods <- res %>% 
@@ -780,9 +780,10 @@ all_forest_plots <- forestplot(res %>%
                           se = se,
                           pvalue = pval,
                           colour = method,
+                          shape = method,
                           xlab = "",
                           #ylab = "Outcome",
-                          #title = "Outcome",
+                          title = "MR of proteins involved in IL6 signalling \n on CRP levels",
                           logodds = FALSE
 ) + theme(axis.text = element_text(size = 10),
           axis.title.x = element_text(size = 10))
