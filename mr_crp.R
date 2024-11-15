@@ -704,6 +704,39 @@ dat %>%
            ifelse(other_allele.exposure == other_allele.outcome, 0, 1)) %>%
   summarise(sum(check_effect_allele), sum(check_other_allele))
 
+
+# -----------------------------------------------------#
+### Correlation plots ###
+
+# -----------------------------------------------------#
+
+corrs <- TwoSampleMR::ld_matrix(dat$SNP) %>% as.data.frame()
+
+
+library(ggcorrplot)
+
+ggcorrplot(corrs, hc.order = TRUE, outline.col = "white") + 
+  theme(axis.text.x = element_text(angle = 45,
+                                   size = 5, hjust = 1)) + 
+  theme(axis.text.y = element_text( 
+                                   size = 8, hjust = 1))
+
+
+# IL6 correlations, including rs2228145
+il6_snps <- dat %>% filter(grepl("IL6_",exposure)) %>% 
+  select(SNP) %>% add_row(SNP = "rs2228145")
+il6_corr <- TwoSampleMR::ld_matrix(il6_snps$SNP) %>% 
+  as.data.frame()
+
+
+il6_cor_plot <- ggcorrplot(il6_corr, hc.order = TRUE, outline.col = "white", lab = TRUE)
+
+
+# -----------------------------------------------------#
+
+### Perform MR ###
+
+# -----------------------------------------------------#
 # All MR methods
 #res <- mr(dat)
 

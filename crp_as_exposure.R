@@ -122,6 +122,16 @@ all_outcome_data <- rbind(outcome_il6_eqtlgen,
 crp_dat <- harmonise_data(crp_snps, all_outcome_data)
 crp_dat <- crp_dat %>% mutate(exposure = "C-reactive protein levels")
 
+
+#write.csv(crp_dat, paste0(output_folder,"/MR_CRP/crp_exposure_harmonised_data.csv"))
+
+# -----------------------------------------------------#
+### Read harmonised data ###
+# avoids running previous code
+# -----------------------------------------------------#
+
+crp_dat <- read.csv(paste0(output_folder,"/MR_CRP/crp_exposure_harmonised_data.csv"))
+
 # 
 #Results
 crp_res <- mr(crp_dat, method_list = c("mr_wald_ratio", "mr_egger_regression", 
@@ -184,7 +194,8 @@ crp_forest_plot <- forestplot(crp_res %>%
                                se = se,
                                pvalue = pval,
                                colour = method,
-                              shape = method,
+                               shape = method,
+                               #ci = 0.95,
                                xlab = "",
                                #ylab = "Outcome",
                                title = "MR of CRP levels on proteins involved \n in IL6 signalling",
