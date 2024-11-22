@@ -13,6 +13,8 @@ output_folder <- "C:/Users/ss23664/OneDrive - University of Bristol/Thesis/IL6_b
 
 p_val_thresh = 5e-8
 
+options(ieugwasr_api = 'gwas-api.mrcieu.ac.uk/')
+
 
 # -----------------------------------------------------#
 ### Dataset variable names ###
@@ -175,3 +177,331 @@ il6_eqtlgen <- extract_outcome_data(il6_exposure_data$SNP, "eqtl-a-ENSG000001362
 
 dat <- harmonise_data(il6_exposure_data, il6_eqtlgen)
 res <- mr(dat)
+
+
+
+# -----------------------------------------------------#
+### IL6R ###
+# -----------------------------------------------------#
+
+
+il6r_ukb <- read.table("IL6R/IL6R_signif.txt", 
+                       header = F,
+                       sep = "\t")
+
+il6r_ukb <- data.frame(setNames(il6r_ukb, ukb_vars)) %>%
+  mutate(olink_target_fullname = "IL6R_UKB")
+
+# Format data
+il6r_ukb <- format_data(
+  il6r_ukb,
+  type = "exposure",
+  snps = NULL,
+  header = TRUE,
+  phenotype_col = "olink_target_fullname",
+  snp_col = "rsid",
+  beta_col = "BETA",
+  se_col = "SE",
+  effect_allele_col = "A1",
+  other_allele_col = "A2",
+  pval_col = "P",
+  samplesize_col = "N",
+  id_col = "HGNC.symbol",
+  chr_col = "CHROM",
+  pos_col = "POS38",
+  gene_col = "ensembl_id",
+  eaf_col= "A1FREQ"
+)
+
+il6r_ukb <- clump_data(il6r_ukb)
+
+
+
+#GTEx - Blood
+il6r_gtex_blood <- read.table("IL6R/IL6R_gtex_blood.txt", 
+                              header = T, 
+                              sep="")
+
+il6r_gtex_blood %>% colnames()
+il6r_gtex_blood %>% head()
+
+il6r_gtex_blood %>%
+  filter(p < (0.05/333)) %>%
+  nrow()
+# 143 
+
+il6r_gtex_blood <- il6r_gtex_blood %>%
+  filter(p < (0.05/333)) %>% 
+  mutate(phenotype = "IL6R_gtex_blood") %>%
+  mutate(N = NA)
+
+
+# Format data
+il6r_gtex_blood <- format_data(
+  il6r_gtex_blood,
+  type = "exposure",
+  snps = NULL,
+  header = TRUE,
+  phenotype_col = "phenotype",
+  snp_col = "SNP",
+  beta_col = "b",
+  se_col = "SE",
+  effect_allele_col = "A1",
+  other_allele_col = "A2",
+  pval_col = "p",
+  samplesize_col = "N",
+  id_col = "phenotype",
+  chr_col = "Chr",
+  pos_col = "BP",
+  gene_col = "Gene",
+  eaf_col= "Freq"
+)
+
+il6r_gtex_blood <- clump_data(il6r_gtex_blood)
+
+il6r_exposures <- rbind(il6r_ukb, il6r_gtex_blood)
+
+
+# Outcome data
+outcome_il6r_eqtlgen <- extract_outcome_data(il6r_exposures$SNP, 
+                                             "eqtl-a-ENSG00000160712") %>%
+  mutate(outcome = "IL6R eqtlgen")
+
+# Harmonise
+
+il6r_dat <- harmonise_data(il6r_exposures, outcome_il6r_eqtlgen)
+
+#Results
+il6r_res <- mr(il6r_dat, method_list = c("mr_wald_ratio", "mr_egger_regression", 
+                                       "mr_weighted_median", "mr_ivw"))
+
+
+# -----------------------------------------------------#
+### Plots ###
+# -----------------------------------------------------#
+
+#save
+save_func <- function(file_name, plot_name)
+{
+  png(file_name, res=450, height=5500, width=3500)
+  print(plot_name)
+  dev.off()
+  
+}
+
+# Scatter plot
+p1 <- mr_scatter_plot(crp_res, crp_dat)
+
+length(p1)
+
+p1[[1]]
+
+
+# -----------------------------------------------------#
+### ggforestplot ###
+# -----------------------------------------------------#
+# 
+
+# Forest plot for each exposure
+
+il6r_forest_plot <- forestplot(il6r_res %>%
+                                 #filter(method == "Inverse variance weighted") %>% 
+                                 arrange(exposure),
+                               name = exposure,
+                               estimate = b,
+                               se = se,
+                               pvalue = pval,
+                               colour = method,
+                               shape = method,
+                               xlab = "",
+                               #ylab = "Outcome",
+                               #title = "MR of proteins involved in IL6 signalling \n on CRP levels",
+                               logodds = FALSE
+) + theme(axis.text = element_text(size = 10),
+          axis.title.x = element_text(size = 10))
+
+il6r_forest_plot
+
+save_func(paste0(output_folder,"/MR_CRP/all_forest_plots_clumped.png"), all_forest_plots)
+
+
+
+# -----------------------------------------------------#
+### IL6ST ###
+# -----------------------------------------------------#
+
+il6st_ukb <- read.table("IL6ST/IL6ST_signif.txt", 
+                        header = F, 
+                        sep="\t")
+
+il6st_ukb <- data.frame(setNames(il6st_ukb, ukb_vars)) %>%
+  mutate(olink_target_fullname = "IL6ST_UKB")
+
+# Format data
+il6st_ukb <- format_data(
+  il6st_ukb,
+  type = "exposure",
+  snps = NULL,
+  header = TRUE,
+  phenotype_col = "olink_target_fullname",
+  snp_col = "rsid",
+  beta_col = "BETA",
+  se_col = "SE",
+  effect_allele_col = "A1",
+  other_allele_col = "A2",
+  pval_col = "P",
+  samplesize_col = "N",
+  id_col = "HGNC.symbol",
+  chr_col = "CHROM",
+  pos_col = "POS38",
+  gene_col = "ensembl_id",
+  eaf_col= "A1FREQ"
+)
+
+il6st_ukb <- clump_data(il6st_ukb)
+
+
+
+#GTEx - Blood
+il6st_gtex_blood <- read.table("IL6ST/IL6ST_gtex_blood.txt", 
+                               header = T, 
+                               sep="")
+
+il6st_gtex_blood %>% colnames()
+il6st_gtex_blood %>% head()
+
+il6st_gtex_blood %>%
+  filter(p < (0.05/333)) %>%
+  nrow()
+# 3 
+
+il6st_gtex_blood <- il6st_gtex_blood %>%
+  filter(p < (0.05/333)) %>% 
+  mutate(phenotype = "IL6ST_gtex_blood") %>% 
+  mutate(N = NA)
+
+
+# Format data
+il6st_gtex_blood <- format_data(
+  il6st_gtex_blood,
+  type = "exposure",
+  snps = NULL,
+  header = TRUE,
+  phenotype_col = "phenotype",
+  snp_col = "SNP",
+  beta_col = "b",
+  se_col = "SE",
+  effect_allele_col = "A1",
+  other_allele_col = "A2",
+  pval_col = "p",
+  samplesize_col = "N",
+  id_col = "phenotype",
+  chr_col = "Chr",
+  pos_col = "BP",
+  gene_col = "Gene",
+  eaf_col= "Freq"
+)
+
+il6st_gtex_blood <- clump_data(il6st_gtex_blood)
+
+
+#GTEx - Liver
+il6st_gtex_liver <- read.table("IL6ST/IL6ST_liver.txt", 
+                               header = T, 
+                               sep="")
+
+il6st_gtex_liver %>% colnames()
+il6st_gtex_liver %>% head()
+
+il6st_gtex_liver %>%
+  filter(p < (0.05/333)) %>%
+  nrow()
+# 2
+
+il6st_gtex_liver <- il6st_gtex_liver %>%
+  filter(p < (0.05/333)) %>%
+  mutate(phenotype = "IL6ST_gtex_liver") %>% 
+  mutate(N = NA)
+
+# Format data
+il6st_gtex_liver <- format_data(
+  il6st_gtex_liver,
+  type = "exposure",
+  snps = NULL,
+  header = TRUE,
+  phenotype_col = "phenotype",
+  snp_col = "SNP",
+  beta_col = "b",
+  se_col = "SE",
+  effect_allele_col = "A1",
+  other_allele_col = "A2",
+  pval_col = "p",
+  samplesize_col = "N",
+  id_col = "phenotype",
+  chr_col = "Chr",
+  pos_col = "BP",
+  gene_col = "Gene",
+  eaf_col= "Freq"
+)
+
+il6st_gtex_liver <- clump_data(il6st_gtex_liver)
+
+
+# Combine exposures
+il6st_exposures <- rbind(il6st_ukb, il6st_gtex_blood, il6st_gtex_liver)
+
+
+# Outcome data
+outcome_il6st_eqtlgen <- extract_outcome_data(il6st_exposures$SNP, 
+                                              "eqtl-a-ENSG00000134352") %>%
+  mutate(outcome = "IL6ST eqtlgen")
+
+# Harmonise
+
+il6st_dat <- harmonise_data(il6st_exposures, outcome_il6st_eqtlgen)
+
+#Results
+il6st_res <- mr(il6st_dat, method_list = c("mr_wald_ratio", "mr_egger_regression", 
+                                         "mr_weighted_median", "mr_ivw"))
+
+
+# -----------------------------------------------------#
+### Plots ###
+# -----------------------------------------------------#
+
+# Scatter plot
+p1 <- mr_scatter_plot(il6st_res, il6st_dat)
+
+length(p1)
+
+p1[[1]]
+
+
+# -----------------------------------------------------#
+### ggforestplot ###
+# -----------------------------------------------------#
+# 
+
+# Forest plot for each exposure
+
+il6st_forest_plot <- forestplot(il6st_res %>%
+                                 #filter(method == "Inverse variance weighted") %>% 
+                                 arrange(exposure),
+                               name = exposure,
+                               estimate = b,
+                               se = se,
+                               pvalue = pval,
+                               colour = method,
+                               shape = method,
+                               xlab = "",
+                               #ylab = "Outcome",
+                               title = "MR of IL6ST from UKB and GTEx \n on IL6ST in Eqtlgen",
+                               logodds = FALSE
+) + theme(axis.text = element_text(size = 10),
+          axis.title.x = element_text(size = 10))
+
+il6st_forest_plot
+
+save_func(paste0(output_folder,"/MR_CRP/all_forest_plots_clumped.png"), all_forest_plots)
+
+
